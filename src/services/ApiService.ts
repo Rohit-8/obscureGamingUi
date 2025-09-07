@@ -95,6 +95,16 @@ class ApiService {
     const response: AxiosResponse<User[]> = await this.api.get('/users/leaderboard');
     return response.data;
   }
+
+  // Health check endpoint
+  async health(): Promise<boolean> {
+    try {
+      const response: AxiosResponse = await this.api.get('/health', { timeout: 3000 });
+      return response.status === 200;
+    } catch (err) {
+      return false;
+    }
+  }
 }
 
 export const apiService = new ApiService();

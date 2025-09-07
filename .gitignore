@@ -21,6 +21,8 @@ Thumbs.db
 # Ignore environment files
 .env
 
+dev/
+
 # Ignore unwanted files
 npm-debug.log*
 yarn-debug.log*
