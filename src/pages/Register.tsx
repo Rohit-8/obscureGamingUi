@@ -11,10 +11,18 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useHealth } from '../hooks/useHealth';
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
   const { register } = useAuth();
+  const { healthy } = useHealth();
+
+  React.useEffect(() => {
+    if (healthy === false) {
+      navigate('/');
+    }
+  }, [healthy, navigate]);
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

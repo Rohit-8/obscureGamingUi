@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline, Box } from '@mui/material';
 import { AuthProvider, useAuth } from './hooks/useAuth';
+import { HealthProvider } from './hooks/useHealth';
 import Navbar from './components/Navbar';
 import Dashboard from './pages/Dashboard';
 import GameCatalog from './pages/GameCatalog';
@@ -62,44 +63,48 @@ const App: React.FC = () => {
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
       <AuthProvider>
-        <Router>
-          <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-            <Navbar />
-            <Box component="main" sx={{ flexGrow: 1 }}>
-              <Routes>
-                {/* Public routes */}
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
+        <HealthProvider>
+          <Router>
+            <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+              <Navbar />
+              <Box component="main" sx={{ flexGrow: 1 }}>
+                <Routes>
+                  {/* Public routes */}
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
 
-                {/* Protected routes */}
-                <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                <Route path="/games" element={<ProtectedRoute><GameCatalog /></ProtectedRoute>} />
-                <Route path="/games/:gameId" element={<ProtectedRoute><GameDetail /></ProtectedRoute>} />
-                <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-                <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
-                <Route path="/online-players" element={<ProtectedRoute><OnlinePlayers /></ProtectedRoute>} />
+                  {/* Landing and games are public - games do not require backend */}
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/games" element={<GameCatalog />} />
+                  <Route path="/games/:gameId" element={<GameDetail />} />
 
-                {/* Game routes */}
-                <Route path="/play/sudoku" element={<ProtectedRoute><SudokuGame /></ProtectedRoute>} />
-                <Route path="/play/tictactoe" element={<ProtectedRoute><TicTacToeGame /></ProtectedRoute>} />
-                <Route path="/play/whackamole" element={<ProtectedRoute><WhackAMoleGame /></ProtectedRoute>} />
-                <Route path="/play/simon" element={<ProtectedRoute><SimonGame /></ProtectedRoute>} />
-                <Route path="/play/rockthebeat" element={<ProtectedRoute><RockTheBeatGame /></ProtectedRoute>} />
-                <Route path="/play/dice" element={<ProtectedRoute><DiceGame /></ProtectedRoute>} />
-                <Route path="/play/physics" element={<ProtectedRoute><PhysicsInteractiveGame /></ProtectedRoute>} />
-                <Route path="/play/mindful" element={<ProtectedRoute><MindfulFractalGame /></ProtectedRoute>} />
-                <Route path="/play/memory" element={<ProtectedRoute><MemoryMatchingGame /></ProtectedRoute>} />
-                <Route path="/play/wordsearch" element={<ProtectedRoute><WordSearchGame /></ProtectedRoute>} />
-                <Route path="/play/maze" element={<ProtectedRoute><MazeGame /></ProtectedRoute>} />
-                <Route path="/play/tower" element={<ProtectedRoute><TowerDefenseGame /></ProtectedRoute>} />
-                <Route path="/play/trivia" element={<ProtectedRoute><TriviaQuizGame /></ProtectedRoute>} />
+                  {/* Backend-dependent routes (require auth + backend) */}
+                  <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                  <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
+                  <Route path="/online-players" element={<ProtectedRoute><OnlinePlayers /></ProtectedRoute>} />
 
-                {/* Fallback */}
-                <Route path="*" element={<Navigate to="/" />} />
-              </Routes>
+                  {/* Game routes (public) */}
+                  <Route path="/play/sudoku" element={<SudokuGame />} />
+                  <Route path="/play/tictactoe" element={<TicTacToeGame />} />
+                  <Route path="/play/whackamole" element={<WhackAMoleGame />} />
+                  <Route path="/play/simon" element={<SimonGame />} />
+                  <Route path="/play/rockthebeat" element={<RockTheBeatGame />} />
+                  <Route path="/play/dice" element={<DiceGame />} />
+                  <Route path="/play/physics" element={<PhysicsInteractiveGame />} />
+                  <Route path="/play/mindful" element={<MindfulFractalGame />} />
+                  <Route path="/play/memory" element={<MemoryMatchingGame />} />
+                  <Route path="/play/wordsearch" element={<WordSearchGame />} />
+                  <Route path="/play/maze" element={<MazeGame />} />
+                  <Route path="/play/tower" element={<TowerDefenseGame />} />
+                  <Route path="/play/trivia" element={<TriviaQuizGame />} />
+
+                  {/* Fallback */}
+                  <Route path="*" element={<Navigate to="/" />} />
+                </Routes>
+              </Box>
             </Box>
-          </Box>
-        </Router>
+          </Router>
+        </HealthProvider>
       </AuthProvider>
     </ThemeProvider>
   );

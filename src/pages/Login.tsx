@@ -11,10 +11,19 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useHealth } from '../hooks/useHealth';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { healthy } = useHealth();
+
+  // If backend is down, don't allow visiting login page
+  React.useEffect(() => {
+    if (healthy === false) {
+      navigate('/');
+    }
+  }, [healthy, navigate]);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
