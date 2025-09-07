@@ -39,7 +39,13 @@ const Navbar: React.FC = () => {
     <AppBar position="static" sx={{ background: 'linear-gradient(90deg, #0f172a, #1e293b)' }}>
       <Toolbar>
         <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
-          🎮 Obscure Gaming
+          {/* <Box
+            component="img"
+            src="/obscurelogofinal-withoutbackground.png"
+            alt="Obscure Gaming logo"
+            sx={{ height: 32, width: 'auto', mr: 1 }}
+          /> */}
+            🎮 Obscure Gaming
         </Typography>
 
         <Box sx={{ display: 'flex', gap: 2 }}>
