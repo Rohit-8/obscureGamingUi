@@ -13,6 +13,7 @@ import Register from './pages/Register';
 import Profile from './pages/Profile';
 import Leaderboard from './pages/Leaderboard';
 import OnlinePlayers from './pages/OnlinePlayers';
+import About from './pages/About';
 
 // Import all games - using the new index.tsx structure
 import SudokuGame from './games/Sudoku';
@@ -77,6 +78,7 @@ const App: React.FC = () => {
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/games" element={<GameCatalog />} />
                   <Route path="/games/:gameId" element={<GameDetail />} />
+                  <Route path="/about" element={<About />} />
 
                   {/* Backend-dependent routes (require auth + backend) */}
                   <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />

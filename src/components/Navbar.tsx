@@ -55,6 +55,9 @@ const Navbar: React.FC = () => {
           <Button color="inherit" startIcon={<Games />} onClick={() => navigate('/games') }>
             Games
           </Button>
+          <Button color="inherit" onClick={() => navigate('/about')}>
+            About
+          </Button>
 
           {/* Show leaderboard only if backend healthy */}
           {healthy && (
@@ -63,7 +66,7 @@ const Navbar: React.FC = () => {
             </Button>
           )}
 
-          {isAuthenticated ? (
+          {healthy === true && isAuthenticated ? (
             <>
               <IconButton color="inherit" onClick={handleMenuOpen}>
                 <Person />
