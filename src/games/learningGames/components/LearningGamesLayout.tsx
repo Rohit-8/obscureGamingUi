@@ -282,7 +282,7 @@ export const LearningGamesLayout: React.FC<LearningGamesLayoutProps> = ({
   );
 
   return (
-    <Box sx={{ display: 'flex', pt: 2 }}>
+    <Box sx={{ display: 'flex', pt: '64px' }}> {/* Add top padding equal to navbar height */}
 
       <Box
         component="nav"
@@ -295,7 +295,12 @@ export const LearningGamesLayout: React.FC<LearningGamesLayoutProps> = ({
           ModalProps={{ keepMounted: true }}
           sx={{
             display: { xs: 'block', md: 'none' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+            '& .MuiDrawer-paper': { 
+              boxSizing: 'border-box', 
+              width: drawerWidth,
+              top: '64px', // Start below the main navbar on mobile too
+              height: 'calc(100vh - 64px)', // Adjust height accordingly
+            },
           }}
         >
           {drawer}
@@ -304,7 +309,12 @@ export const LearningGamesLayout: React.FC<LearningGamesLayoutProps> = ({
           variant="permanent"
           sx={{
             display: { xs: 'none', md: 'block' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+            '& .MuiDrawer-paper': { 
+              boxSizing: 'border-box', 
+              width: drawerWidth,
+              top: '64px', // Start below the main navbar
+              height: 'calc(100vh - 64px)', // Adjust height accordingly
+            },
           }}
           open
         >
