@@ -6,16 +6,18 @@ import { Box, Typography, Card, CardContent, Grid, Chip, Button, CircularProgres
 import { PlayArrow, Timer, TrendingUp } from '@mui/icons-material';
 
 // Import Physics Games
-import { RunnerControlMotion, WaveSimulatorLab } from './Physics';
 import { 
-  LensMirrorPlayground, 
-  CircuitBuilder, 
-  HeatFlowSimulator, 
-  ProjectileAdventure, 
-  ChargeFieldExplorer, 
-  LightMaze, 
-  AtomBuilder 
-} from './Physics/ComingSoonGames';
+  CircuitBuilder,
+  OpticsLab,
+  ThermodynamicsLab,
+  ProjectileMotion,
+  ElectromagneticField,
+  QuantumPhysics,
+  AtomicStructure,
+  GravitySimulator
+} from './Physics';
+import { RunnerControlMotion } from './Physics/RunnerControlMotion';
+import { WaveSimulatorLab } from './Physics/WaveSimulatorLab';
 
 // Import Chemistry Games
 import { ParticlePlayground } from './Chemistry';
@@ -68,24 +70,26 @@ const LearningGames: React.FC = () => {
 
     switch (selectedGame) {
       // Physics Games
+      case 'circuit-builder':
+        return <CircuitBuilder />;
+      case 'optics-lab':
+        return <OpticsLab />;
+      case 'thermodynamics-lab':
+        return <ThermodynamicsLab />;
+      case 'projectile-motion':
+        return <ProjectileMotion />;
+      case 'electromagnetic-field':
+        return <ElectromagneticField />;
+      case 'quantum-physics':
+        return <QuantumPhysics />;
+      case 'atomic-structure':
+        return <AtomicStructure />;
+      case 'gravity-simulator':
+        return <GravitySimulator />;
       case 'runner-control-motion':
         return <RunnerControlMotion />;
       case 'wave-simulator-lab':
         return <WaveSimulatorLab />;
-      case 'lens-mirror-playground':
-        return <LensMirrorPlayground />;
-      case 'circuit-builder':
-        return <CircuitBuilder />;
-      case 'heat-flow-simulator':
-        return <HeatFlowSimulator />;
-      case 'projectile-adventure':
-        return <ProjectileAdventure />;
-      case 'charge-field-explorer':
-        return <ChargeFieldExplorer />;
-      case 'light-maze':
-        return <LightMaze />;
-      case 'atom-builder':
-        return <AtomBuilder />;
 
       // Chemistry Games
       case 'particle-playground':
