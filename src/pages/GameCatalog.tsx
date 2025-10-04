@@ -20,6 +20,7 @@ const GameCatalog: React.FC = () => {
   const [searchTerm, setSearchTerm] = React.useState('');
 
   const allGames = [
+    { id: 'learning', name: 'Learning Games', icon: '🎓', category: 'Educational', difficulty: 'Medium', description: 'Interactive Physics, Chemistry & Math games for Classes 9-12' },
     { id: 'dice', name: 'Dice Game', icon: '🎲', category: 'Luck', difficulty: 'Easy', description: 'Roll dice and score points with patterns' },
     { id: 'tictactoe', name: 'Tic Tac Toe', icon: '⭕', category: 'Strategy', difficulty: 'Easy', description: 'Classic strategy game with AI opponent' },
     { id: 'simon', name: 'Simon Says', icon: '🔴', category: 'Memory', difficulty: 'Medium', description: 'Remember and repeat color sequences' },

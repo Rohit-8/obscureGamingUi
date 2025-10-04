@@ -36,7 +36,11 @@ const Navbar: React.FC = () => {
   const { healthy } = useHealth();
 
   return (
-    <AppBar position="static" sx={{ background: 'linear-gradient(90deg, #0f172a, #1e293b)' }}>
+    <AppBar position="sticky" sx={{ 
+      background: 'linear-gradient(90deg, #0f172a, #1e293b)',
+      top: 0,
+      zIndex: 1300, // Ensure it stays above other content
+    }}>
       <Toolbar>
         <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
           {/* <Box

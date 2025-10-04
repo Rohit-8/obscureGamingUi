@@ -29,6 +29,7 @@ import WordSearchGame from './games/WordSearch';
 import MazeGame from './games/MazeGame';
 import TowerDefenseGame from './games/TowerDefense';
 import TriviaQuizGame from './games/TriviaQuiz';
+import LearningGames from './games/learningGames';
 
 const darkTheme = createTheme({
   palette: {
@@ -99,6 +100,7 @@ const App: React.FC = () => {
                   <Route path="/play/maze" element={<MazeGame />} />
                   <Route path="/play/tower" element={<TowerDefenseGame />} />
                   <Route path="/play/trivia" element={<TriviaQuizGame />} />
+                  <Route path="/play/learning" element={<LearningGames />} />
 
                   {/* Fallback */}
                   <Route path="*" element={<Navigate to="/" />} />
