@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { apiService } from '../services/ApiService';
 
 interface HealthContextType {
@@ -10,17 +10,32 @@ const HealthContext = createContext<HealthContextType | undefined>(undefined);
 
 export const HealthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [healthy, setHealthy] = useState<boolean | null>(null);
+  const healthCheckInProgress = useRef(false);
 
   const checkHealth = async () => {
-    const ok = await apiService.health();
-    setHealthy(ok);
-    return ok;
+    if (healthCheckInProgress.current) {
+      return healthy ?? false;
+    }
+
+    healthCheckInProgress.current = true;
+    try {
+      const ok = await apiService.health();
+      setHealthy(ok);
+      return ok;
+    } finally {
+      healthCheckInProgress.current = false;
+    }
   };
 
   useEffect(() => {
     // Run a quick health check on mount
     let mounted = true;
-    (async () => {
+    let timeout: NodeJS.Timeout;
+
+    const performHealthCheck = async () => {
+      if (healthCheckInProgress.current) return;
+      
+      healthCheckInProgress.current = true;
       try {
         const ok = await apiService.health();
         if (!mounted) return;
@@ -28,10 +43,18 @@ export const HealthProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       } catch (err) {
         if (!mounted) return;
         setHealthy(false);
+      } finally {
+        healthCheckInProgress.current = false;
       }
-    })();
+    };
 
-    return () => { mounted = false; };
+    timeout = setTimeout(performHealthCheck, 50);
+
+    return () => { 
+      mounted = false;
+      healthCheckInProgress.current = false;
+      if (timeout) clearTimeout(timeout);
+    };
   }, []);
 
   return (
