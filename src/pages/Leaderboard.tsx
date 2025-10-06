@@ -16,20 +16,42 @@ import {
   ToggleButton
 } from '@mui/material';
 import { EmojiEvents, Star } from '@mui/icons-material';
+import { apiService } from '../services/ApiService';
 
 const Leaderboard: React.FC = () => {
   const [timeframe, setTimeframe] = React.useState('all');
+  const [leaderboardData, setLeaderboardData] = React.useState<Array<any>>([]);
+  const [loading, setLoading] = React.useState<boolean>(false);
+  const [error, setError] = React.useState<string | null>(null);
 
-  const leaderboardData = [
-    { rank: 1, username: 'GameMaster123', score: 25420, games: 156, avatar: 'G' },
-    { rank: 2, username: 'PuzzleQueen', score: 23890, games: 142, avatar: 'P' },
-    { rank: 3, username: 'ArcadeKing', score: 22150, games: 138, avatar: 'A' },
-    { rank: 4, username: 'BrainTeaser', score: 20980, games: 124, avatar: 'B' },
-    { rank: 5, username: 'SpeedRunner', score: 19750, games: 119, avatar: 'S' },
-    { rank: 6, username: 'StrategyGuru', score: 18420, games: 103, avatar: 'S' },
-    { rank: 7, username: 'CasualGamer', score: 16890, games: 95, avatar: 'C' },
-    { rank: 8, username: 'YoungProdigy', score: 15240, games: 87, avatar: 'Y' }
-  ];
+  React.useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const users = await apiService.getLeaderboard();
+        if (!mounted) return;
+        const mapped = (users || []).map((u: any, idx: number) => ({
+          rank: idx + 1,
+          username: u.username,
+          score: u.totalScore ?? u.score ?? (u.stats?.totalScore ?? 0),
+          games: u.stats?.gamesPlayed ?? u.gamesPlayed ?? 0,
+          avatar: u.username?.[0] ?? '?'
+        }));
+        setLeaderboardData(mapped);
+      } catch (err: any) {
+        console.error('Failed to load leaderboard', err);
+        if (!mounted) return;
+        setError('Could not load leaderboard');
+        setLeaderboardData([]);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    load();
+    return () => { mounted = false; };
+  }, [timeframe]);
 
   const getRankIcon = (rank: number) => {
     switch (rank) {
@@ -77,7 +99,12 @@ const Leaderboard: React.FC = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {leaderboardData.map((player) => (
+              {loading ? (
+                <TableRow><TableCell colSpan={5}><Typography>Loading leaderboard...</Typography></TableCell></TableRow>
+              ) : error ? (
+                <TableRow><TableCell colSpan={5}><Typography color="error">{error}</Typography></TableCell></TableRow>
+              ) : (
+                leaderboardData.map((player) => (
                 <TableRow key={player.rank} sx={{ '&:nth-of-type(odd)': { bgcolor: 'action.hover' } }}>
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -105,10 +132,10 @@ const Leaderboard: React.FC = () => {
                   </TableCell>
                   <TableCell align="right">{player.games}</TableCell>
                   <TableCell align="right">
-                    {Math.round(player.score / player.games)}
+                    {player.games ? Math.round(player.score / player.games) : 0}
                   </TableCell>
                 </TableRow>
-              ))}
+              )))}
             </TableBody>
           </Table>
         </TableContainer>

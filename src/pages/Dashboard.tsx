@@ -15,12 +15,14 @@ import { PlayArrow } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useHealth } from '../hooks/useHealth';
+import { apiService } from '../services/ApiService';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { healthy } = useHealth();
 
+  // UI-curated featured games remain static
   const featuredGames = [
     { id: 'physics', name: 'Physics Interactive', icon: '⚗️', description: 'Explore physics simulations' },
     { id: 'sudoku', name: 'Sudoku', icon: '🧩', description: 'Classic number puzzle' },
@@ -28,12 +30,71 @@ const Dashboard: React.FC = () => {
     { id: 'simon', name: 'Simon Says', icon: '🔴', description: 'Memory sequence game' }
   ];
 
-  // recentActivity data is only shown when backend is healthy and the user is logged in.
-  const recentActivity = [
-    { game: 'Sudoku', score: 1250, time: '2 hours ago' },
-    { game: 'Simon Says', score: 890, time: '1 day ago' },
-    { game: 'Physics Interactive', score: 0, time: '2 days ago' }
-  ];
+  // dynamic data (fetched from backend)
+  const [recentActivity, setRecentActivity] = React.useState<any[]>([]);
+  const [profileStats, setProfileStats] = React.useState<{ gamesPlayed?: number; bestScore?: number; timePlayed?: string } | null>(null);
+  const [loadingRecent, setLoadingRecent] = React.useState(false);
+  const [loadingProfile, setLoadingProfile] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    let mounted = true;
+
+    const loadRecent = async () => {
+      setLoadingRecent(true);
+      try {
+        if (!user) {
+          setRecentActivity([]);
+          return;
+        }
+        // Best-effort: use leaderboard as source for recent activity if explicit endpoint not available
+        const leaderboard = await apiService.getLeaderboard();
+        if (!mounted) return;
+        const recent = (leaderboard || []).slice(0, 5).map((u: any) => ({
+          game: u.lastPlayedGame || 'Unknown',
+          score: u.score ?? 0,
+          time: u.lastPlayedAt ? new Date(u.lastPlayedAt).toLocaleString() : 'recently'
+        }));
+        setRecentActivity(recent);
+      } catch (err) {
+        console.error(err);
+        if (!mounted) return;
+        setRecentActivity([]);
+        setError('Failed to load recent activity');
+      } finally {
+        if (mounted) setLoadingRecent(false);
+      }
+    };
+
+    const loadProfile = async () => {
+      setLoadingProfile(true);
+      try {
+        if (!user) {
+          setProfileStats(null);
+          return;
+        }
+        const profile = await apiService.getUserProfile(user.id);
+        if (!mounted) return;
+        const stats = (profile as any).stats ?? {};
+        setProfileStats({
+          gamesPlayed: stats.gamesPlayed ?? 0,
+          bestScore: stats.totalScore ?? 0,
+          timePlayed: (stats as any).timePlayed ?? '0h'
+        });
+      } catch (err) {
+        console.error(err);
+        if (!mounted) return;
+        setProfileStats(null);
+      } finally {
+        if (mounted) setLoadingProfile(false);
+      }
+    };
+
+    loadRecent();
+    loadProfile();
+
+    return () => { mounted = false; };
+  }, [user]);
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -103,17 +164,21 @@ const Dashboard: React.FC = () => {
                   <Typography variant="h6" gutterBottom>
                     📊 Recent Activity
                   </Typography>
-                  {recentActivity.map((activity, index) => (
-                    <Box key={index} sx={{ mb: 2, p: 2, bgcolor: 'background.default', borderRadius: 1 }}>
-                      <Typography variant="subtitle2">{activity.game}</Typography>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
-                        <Chip size="small" label={`Score: ${activity.score}`} />
-                        <Typography variant="caption" color="text.secondary">
-                          {activity.time}
-                        </Typography>
+                  {loadingRecent ? (
+                    <Typography>Loading recent activity...</Typography>
+                  ) : (
+                    recentActivity.map((activity, index) => (
+                      <Box key={index} sx={{ mb: 2, p: 2, bgcolor: 'background.default', borderRadius: 1 }}>
+                        <Typography variant="subtitle2">{activity.game}</Typography>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
+                          <Chip size="small" label={`Score: ${activity.score}`} />
+                          <Typography variant="caption" color="text.secondary">
+                            {activity.time}
+                          </Typography>
+                        </Box>
                       </Box>
-                    </Box>
-                  ))}
+                    ))
+                  )}
                 </Paper>
               )}
 
@@ -124,15 +189,15 @@ const Dashboard: React.FC = () => {
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                     <Typography>Games Played:</Typography>
-                    <Chip label="47" size="small" />
+                    <Chip label={loadingProfile ? '...' : (profileStats?.gamesPlayed ?? '0')} size="small" />
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                     <Typography>Best Score:</Typography>
-                    <Chip label="2,340" size="small" color="primary" />
+                    <Chip label={loadingProfile ? '...' : (profileStats?.bestScore ?? '0')} size="small" color="primary" />
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                     <Typography>Time Played:</Typography>
-                    <Chip label="12h 30m" size="small" />
+                    <Chip label={loadingProfile ? '...' : (profileStats?.timePlayed ?? '0h')} size="small" />
                   </Box>
                 </Box>
               </Paper>

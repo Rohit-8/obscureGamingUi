@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { apiService } from '../services/ApiService';
 
 interface User {
   id: string;
@@ -31,27 +32,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (username: string, password: string) => {
-    // Mock login - replace with real authentication
-    const mockUser: User = {
-      id: '1',
-      username,
-      email: `${username}@example.com`
-    };
-
-    setUser(mockUser);
-    localStorage.setItem('user', JSON.stringify(mockUser));
+    // Real login via API
+    try {
+      const resp = await apiService.login({ usernameOrEmail: username, password });
+      if (resp?.accessToken && resp.user) {
+        localStorage.setItem('accessToken', resp.accessToken);
+        localStorage.setItem('user', JSON.stringify(resp.user));
+        setUser(resp.user as User);
+      } else {
+        throw new Error('Invalid login response');
+      }
+    } catch (err) {
+      // rethrow so callers can show errors
+      throw err;
+    }
   };
 
   const register = async (username: string, email: string, password: string) => {
-    // Mock registration - replace with real authentication
-    const mockUser: User = {
-      id: '1',
-      username,
-      email
-    };
-
-    setUser(mockUser);
-    localStorage.setItem('user', JSON.stringify(mockUser));
+    // Real registration via API
+    try {
+      const resp = await apiService.register({ username, email, password });
+      if (resp?.accessToken && resp.user) {
+        localStorage.setItem('accessToken', resp.accessToken);
+        localStorage.setItem('user', JSON.stringify(resp.user));
+        setUser(resp.user as User);
+      } else {
+        throw new Error('Invalid register response');
+      }
+    } catch (err) {
+      // bubble up to UI
+      throw err;
+    }
   };
 
   const logout = () => {

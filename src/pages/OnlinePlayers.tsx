@@ -15,24 +15,36 @@ import {
   CardContent
 } from '@mui/material';
 import { Circle } from '@mui/icons-material';
+import { apiService } from '../services/ApiService';
 
 const OnlinePlayers: React.FC = () => {
-  const onlinePlayers = [
-    { id: '1', username: 'GameMaster123', status: 'Playing Sudoku', lastSeen: 'now' },
-    { id: '2', username: 'PuzzleQueen', status: 'In Lobby', lastSeen: '2 min ago' },
-    { id: '3', username: 'ArcadeKing', status: 'Playing Simon Says', lastSeen: 'now' },
-    { id: '4', username: 'BrainTeaser', status: 'Playing Tic Tac Toe', lastSeen: '1 min ago' },
-    { id: '5', username: 'SpeedRunner', status: 'In Lobby', lastSeen: '3 min ago' },
-    { id: '6', username: 'StrategyGuru', status: 'Playing Tower Defense', lastSeen: 'now' }
-  ];
+  const [onlinePlayers, setOnlinePlayers] = React.useState<any[]>([]);
+  const [gameStats, setGameStats] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
 
-  const gameStats = [
-    { game: 'Sudoku', players: 15 },
-    { game: 'Tic Tac Toe', players: 8 },
-    { game: 'Simon Says', players: 6 },
-    { game: 'Tower Defense', players: 4 },
-    { game: 'Memory Matching', players: 3 }
-  ];
+  React.useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      setLoading(true);
+      try {
+        const [users, popular] = await Promise.all([apiService.getOnlineUsers(), apiService.getPopularGames()]);
+        if (!mounted) return;
+        setOnlinePlayers(users || []);
+        // map popular games to simple stat objects
+        setGameStats((popular || []).slice(0, 10).map((g: any) => ({ game: g.name, players: g.playCount ?? g.playCount ?? 0 })));
+      } catch (err) {
+        console.error('Failed to load online players or game stats', err);
+        if (!mounted) return;
+        setOnlinePlayers([]);
+        setGameStats([]);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    load();
+    return () => { mounted = false; };
+  }, []);
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -51,36 +63,40 @@ const OnlinePlayers: React.FC = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
               <Circle sx={{ color: 'success.main', mr: 1, fontSize: 12 }} />
               <Typography variant="h6">
-                {onlinePlayers.length} Players Online
+                {loading ? '...' : onlinePlayers.length} Players Online
               </Typography>
             </Box>
 
             <List>
-              {onlinePlayers.map((player) => (
-                <ListItem key={player.id}>
-                  <ListItemAvatar>
-                    <Avatar sx={{ bgcolor: 'primary.main' }}>
-                      {player.username[0]}
-                    </Avatar>
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={player.username}
-                    secondary={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
-                        <Chip
-                          size="small"
-                          label={player.status}
-                          color={player.status.includes('Playing') ? 'success' : 'default'}
-                        />
-                        <Typography variant="caption" color="text.secondary">
-                          {player.lastSeen}
-                        </Typography>
-                      </Box>
-                    }
-                  />
-                  <Circle sx={{ color: 'success.main', fontSize: 12 }} />
-                </ListItem>
-              ))}
+              {loading ? (
+                <Typography>Loading players...</Typography>
+              ) : (
+                onlinePlayers.map((player: any) => (
+                  <ListItem key={player.id}>
+                    <ListItemAvatar>
+                      <Avatar sx={{ bgcolor: 'primary.main' }}>
+                        {player.username?.[0] ?? '?'}
+                      </Avatar>
+                    </ListItemAvatar>
+                    <ListItemText
+                      primary={player.username}
+                      secondary={
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+                          <Chip
+                            size="small"
+                            label={player.currentAction || player.status || 'In Lobby'}
+                            color={(player.currentAction || player.status || '').includes('Playing') ? 'success' : 'default'}
+                          />
+                          <Typography variant="caption" color="text.secondary">
+                            {player.lastSeen ?? 'recently'}
+                          </Typography>
+                        </Box>
+                      }
+                    />
+                    <Circle sx={{ color: 'success.main', fontSize: 12 }} />
+                  </ListItem>
+                ))
+              )}
             </List>
           </Paper>
         </Grid>
@@ -90,20 +106,24 @@ const OnlinePlayers: React.FC = () => {
             <Typography variant="h6" gutterBottom>
               🎮 Popular Games
             </Typography>
-            {gameStats.map((stat, index) => (
-              <Card key={index} sx={{ mb: 2, bgcolor: 'background.default' }}>
-                <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="subtitle2">{stat.game}</Typography>
-                    <Chip
-                      size="small"
-                      label={`${stat.players} playing`}
-                      color="primary"
-                    />
-                  </Box>
-                </CardContent>
-              </Card>
-            ))}
+            {loading ? (
+              <Typography>Loading game stats...</Typography>
+            ) : (
+              gameStats.map((stat: any, index: number) => (
+                <Card key={index} sx={{ mb: 2, bgcolor: 'background.default' }}>
+                  <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="subtitle2">{stat.game}</Typography>
+                      <Chip
+                        size="small"
+                        label={`${stat.players} playing`}
+                        color="primary"
+                      />
+                    </Box>
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </Paper>
         </Grid>
       </Grid>
