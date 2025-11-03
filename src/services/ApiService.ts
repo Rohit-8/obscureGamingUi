@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
-import { AuthResponse, LoginRequest, RegisterRequest, User, Game } from '../types';
+import { AuthResponse, LoginRequest, RegisterRequest, User, Game, LeaderboardEntry } from '../types';
 
 class ApiService {
   private api: AxiosInstance;
@@ -138,8 +138,9 @@ class ApiService {
     return response.data;
   }
 
-  async getLeaderboard(): Promise<User[]> {
-    const response: AxiosResponse<User[]> = await this.api.get('/users/leaderboard');
+  async getLeaderboard(timeframe?: string): Promise<LeaderboardEntry[]> {
+    const params = timeframe ? { timeframe } : undefined;
+    const response: AxiosResponse<LeaderboardEntry[]> = await this.api.get('/leaderboard', { params });
     return response.data;
   }
 

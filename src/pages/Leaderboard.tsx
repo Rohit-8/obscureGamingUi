@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from "react";
 import {
   Container,
   Typography,
@@ -14,52 +14,135 @@ import {
   Chip,
   ToggleButtonGroup,
   ToggleButton
-} from '@mui/material';
-import { EmojiEvents, Star } from '@mui/icons-material';
-import { apiService } from '../services/ApiService';
+} from "@mui/material";
+import { EmojiEvents, Star } from "@mui/icons-material";
+import { apiService } from "../services/ApiService";
+import { LeaderboardEntry } from "../types";
+
+const timeframeOptions = {
+  today: "DAILY",
+  week: "WEEKLY",
+  month: "MONTHLY",
+  all: "GLOBAL",
+} as const;
+
+type TimeframeKey = keyof typeof timeframeOptions;
 
 const Leaderboard: React.FC = () => {
-  const [timeframe, setTimeframe] = React.useState('all');
-  const [leaderboardData, setLeaderboardData] = React.useState<Array<any>>([]);
-  const [loading, setLoading] = React.useState<boolean>(false);
+  const [timeframe, setTimeframe] = React.useState<TimeframeKey>("all");
+  const [leaderboardData, setLeaderboardData] = React.useState<LeaderboardEntry[]>([]);
+  const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     let mounted = true;
-    const load = async () => {
+
+    const loadLeaderboard = async () => {
       setLoading(true);
       setError(null);
+
       try {
-        const users = await apiService.getLeaderboard();
-        if (!mounted) return;
-        const mapped = (users || []).map((u: any, idx: number) => ({
-          rank: idx + 1,
-          username: u.username,
-          score: u.totalScore ?? u.score ?? (u.stats?.totalScore ?? 0),
-          games: u.stats?.gamesPlayed ?? u.gamesPlayed ?? 0,
-          avatar: u.username?.[0] ?? '?'
+        const timeframeFilter = timeframeOptions[timeframe];
+        const entries = await apiService.getLeaderboard(timeframeFilter);
+        if (!mounted) {
+          return;
+        }
+
+        const normalized = (entries ?? []).map((entry) => ({
+          ...entry,
+          avatarInitial: entry.avatarInitial ?? entry.username?.charAt(0)?.toUpperCase() ?? "?",
         }));
-        setLeaderboardData(mapped);
-      } catch (err: any) {
-        console.error('Failed to load leaderboard', err);
-        if (!mounted) return;
-        setError('Could not load leaderboard');
+
+        setLeaderboardData(normalized);
+      } catch (err) {
+        console.error("Failed to load leaderboard", err);
+        if (!mounted) {
+          return;
+        }
+
+        setError("Could not load leaderboard");
         setLeaderboardData([]);
       } finally {
-        if (mounted) setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
-    load();
-    return () => { mounted = false; };
+
+    loadLeaderboard();
+
+    return () => {
+      mounted = false;
+    };
   }, [timeframe]);
 
   const getRankIcon = (rank: number) => {
     switch (rank) {
-      case 1: return <EmojiEvents sx={{ color: '#FFD700' }} />;
-      case 2: return <EmojiEvents sx={{ color: '#C0C0C0' }} />;
-      case 3: return <EmojiEvents sx={{ color: '#CD7F32' }} />;
-      default: return <Star sx={{ color: 'text.secondary' }} />;
+      case 1:
+        return <EmojiEvents sx={{ color: "#FFD700" }} />;
+      case 2:
+        return <EmojiEvents sx={{ color: "#C0C0C0" }} />;
+      case 3:
+        return <EmojiEvents sx={{ color: "#CD7F32" }} />;
+      default:
+        return <Star sx={{ color: "text.secondary" }} />;
     }
+  };
+
+  const renderRows = () => {
+    if (loading) {
+      return (
+        <TableRow>
+          <TableCell colSpan={5}>
+            <Typography>Loading leaderboard...</Typography>
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    if (error) {
+      return (
+        <TableRow>
+          <TableCell colSpan={5}>
+            <Typography color="error">{error}</Typography>
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    return leaderboardData.map((player) => {
+      const totalScore = player.totalScore ?? 0;
+      const gamesPlayed = player.gamesPlayed ?? 0;
+      const averageScore = gamesPlayed ? Math.round(totalScore / gamesPlayed) : 0;
+      const avatarInitial = player.avatarInitial ?? player.username?.charAt(0)?.toUpperCase() ?? "?";
+
+      return (
+        <TableRow key={player.userId || `${player.rank}-${player.username}`} sx={{ '&:nth-of-type(odd)': { bgcolor: 'action.hover' } }}>
+          <TableCell>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              {getRankIcon(player.rank)}
+              <Typography variant="h6">#{player.rank}</Typography>
+            </Box>
+          </TableCell>
+          <TableCell>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Avatar sx={{ bgcolor: 'primary.main' }}>{avatarInitial}</Avatar>
+              <Typography variant="subtitle1">{player.username}</Typography>
+              {player.rank <= 3 && (
+                <Chip size="small" label="Elite" color="primary" />
+              )}
+            </Box>
+          </TableCell>
+          <TableCell align="right">
+            <Typography variant="h6" color="primary">
+              {totalScore.toLocaleString()}
+            </Typography>
+          </TableCell>
+          <TableCell align="right">{gamesPlayed}</TableCell>
+          <TableCell align="right">{averageScore}</TableCell>
+        </TableRow>
+      );
+    });
   };
 
   return (
@@ -77,7 +160,7 @@ const Leaderboard: React.FC = () => {
         <ToggleButtonGroup
           value={timeframe}
           exclusive
-          onChange={(_, value) => value && setTimeframe(value)}
+          onChange={(_, value: TimeframeKey | null) => value && setTimeframe(value)}
         >
           <ToggleButton value="today">Today</ToggleButton>
           <ToggleButton value="week">This Week</ToggleButton>
@@ -99,43 +182,7 @@ const Leaderboard: React.FC = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {loading ? (
-                <TableRow><TableCell colSpan={5}><Typography>Loading leaderboard...</Typography></TableCell></TableRow>
-              ) : error ? (
-                <TableRow><TableCell colSpan={5}><Typography color="error">{error}</Typography></TableCell></TableRow>
-              ) : (
-                leaderboardData.map((player) => (
-                <TableRow key={player.rank} sx={{ '&:nth-of-type(odd)': { bgcolor: 'action.hover' } }}>
-                  <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      {getRankIcon(player.rank)}
-                      <Typography variant="h6">#{player.rank}</Typography>
-                    </Box>
-                  </TableCell>
-                  <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <Avatar sx={{ bgcolor: 'primary.main' }}>{player.avatar}</Avatar>
-                      <Typography variant="subtitle1">{player.username}</Typography>
-                      {player.rank <= 3 && (
-                        <Chip
-                          size="small"
-                          label="Elite"
-                          color="primary"
-                        />
-                      )}
-                    </Box>
-                  </TableCell>
-                  <TableCell align="right">
-                    <Typography variant="h6" color="primary">
-                      {player.score.toLocaleString()}
-                    </Typography>
-                  </TableCell>
-                  <TableCell align="right">{player.games}</TableCell>
-                  <TableCell align="right">
-                    {player.games ? Math.round(player.score / player.games) : 0}
-                  </TableCell>
-                </TableRow>
-              )))}
+              {renderRows()}
             </TableBody>
           </Table>
         </TableContainer>

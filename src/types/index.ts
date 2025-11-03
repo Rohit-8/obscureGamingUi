@@ -20,6 +20,15 @@ export interface UserStats {
   winRate: number;
 }
 
+export interface LeaderboardEntry {
+  userId: string;
+  username: string;
+  rank: number;
+  totalScore: number;
+  gamesPlayed: number;
+  avatarInitial?: string | null;
+}
+
 export interface Game {
   id: string;
   name: string;
