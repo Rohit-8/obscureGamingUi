@@ -46,6 +46,7 @@ export interface GameMetadata {
 
 export interface AuthResponse {
   accessToken: string;
+  refreshToken?: string;
   tokenType: string;
   user: User;
   expiresAt: string;

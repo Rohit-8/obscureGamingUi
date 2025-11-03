@@ -35,15 +35,62 @@ class ApiService {
     );
   }
 
+  private normalizeAuthResponse(payload: any): AuthResponse {
+    if (!payload) {
+      throw new Error('Empty authentication response');
+    }
+
+    const tokens = payload.tokens ?? {};
+    const profile = payload.profile ?? {};
+    const statistics = profile.statistics ?? {};
+
+    const roles = Array.isArray(profile.roles)
+      ? profile.roles.map((role: unknown) => String(role))
+      : typeof profile.roles === 'string' && profile.roles.length > 0
+        ? profile.roles.split(',').map((role: string) => role.trim()).filter(Boolean)
+        : [];
+
+    const authResponse: AuthResponse = {
+      accessToken: tokens.accessToken ?? '',
+      refreshToken: tokens.refreshToken ?? undefined,
+      tokenType: tokens.tokenType ?? 'Bearer',
+      expiresAt: tokens.expiresAt ?? '',
+      user: {
+        id: profile.id ?? '',
+        username: profile.username ?? '',
+        email: profile.email ?? '',
+        firstName: profile.firstName ?? undefined,
+        lastName: profile.lastName ?? undefined,
+        avatarUrl: profile.avatarUrl ?? undefined,
+        isOnline: profile.online ?? false,
+        lastSeen: profile.lastSeen ?? '',
+        roles,
+        stats: {
+          gamesPlayed: statistics.gamesPlayed ?? 0,
+          gamesWon: statistics.gamesWon ?? 0,
+          totalScore: statistics.totalScore ?? 0,
+          favoriteCategory: statistics.favoriteCategory ?? undefined,
+          winRate: statistics.winRate ?? 0,
+        },
+      },
+    };
+
+    if (!authResponse.accessToken || !authResponse.user.id) {
+      throw new Error('Incomplete authentication response');
+    }
+
+    return authResponse;
+  }
+
   // Auth endpoints
   async login(credentials: LoginRequest): Promise<AuthResponse> {
-    const response: AxiosResponse<AuthResponse> = await this.api.post('/auth/login', credentials);
-    return response.data;
+    const response: AxiosResponse = await this.api.post('/auth/login', credentials);
+    return this.normalizeAuthResponse(response.data);
   }
 
   async register(userData: RegisterRequest): Promise<AuthResponse> {
-    const response: AxiosResponse<AuthResponse> = await this.api.post('/auth/register', userData);
-    return response.data;
+    const response: AxiosResponse = await this.api.post('/auth/register', userData);
+    return this.normalizeAuthResponse(response.data);
   }
 
   async logout(userId: string): Promise<void> {
