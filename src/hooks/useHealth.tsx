@@ -19,7 +19,8 @@ export const HealthProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     healthCheckInProgress.current = true;
     try {
-      const ok = await apiService.health();
+      const res = await apiService.health();
+      const ok = res.ok;
       setHealthy(ok);
       return ok;
     } finally {
@@ -30,21 +31,23 @@ export const HealthProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => {
     // Run a quick health check on mount
     let mounted = true;
-    let timeout: NodeJS.Timeout;
+    let timeout: NodeJS.Timeout | null = null;
 
     const performHealthCheck = async () => {
+      if (!mounted) return;
       if (healthCheckInProgress.current) return;
-      
       healthCheckInProgress.current = true;
+      let res;
       try {
-        const ok = await apiService.health();
+        res = await apiService.health();
         if (!mounted) return;
-        setHealthy(ok);
-      } catch (err) {
-        if (!mounted) return;
-        setHealthy(false);
+        setHealthy(res.ok);
       } finally {
         healthCheckInProgress.current = false;
+      }
+      // Stop automatic polling if backend is unavailable or returned non-200
+      if (!res?.ok) {
+        return;
       }
     };
 

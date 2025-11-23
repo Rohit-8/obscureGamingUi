@@ -34,7 +34,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (username: string, password: string) => {
     // Real login via API
     try {
-      const resp = await apiService.login({ usernameOrEmail: username, password });
+      const resp = await apiService.login({ email: username, password });
       if (resp?.accessToken && resp.user) {
         localStorage.setItem('accessToken', resp.accessToken);
         localStorage.setItem('user', JSON.stringify(resp.user));
@@ -61,6 +61,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (err) {
       // bubble up to UI
+      console.log('Register error:', err);
       throw err;
     }
   };

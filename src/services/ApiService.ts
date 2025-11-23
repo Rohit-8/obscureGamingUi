@@ -6,7 +6,7 @@ class ApiService {
 
   constructor() {
     this.api = axios.create({
-      baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8080/api',
+      baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8080/v1/api',
       headers: {
         'Content-Type': 'application/json',
       },
@@ -145,12 +145,13 @@ class ApiService {
   }
 
   // Health check endpoint
-  async health(): Promise<boolean> {
+  async health(): Promise<{ ok: boolean; status: number | null }> {
     try {
       const response: AxiosResponse = await this.api.get('/health', { timeout: 3000 });
-      return response.status === 200;
-    } catch (err) {
-      return false;
+      return { ok: response.status === 200, status: response.status };
+    } catch (err: any) {
+      const status = err?.response?.status ?? null;
+      return { ok: false, status };
     }
   }
 }
