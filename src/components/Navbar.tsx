@@ -42,15 +42,30 @@ const Navbar: React.FC = () => {
       zIndex: 1300, // Ensure it stays above other content
     }}>
       <Toolbar>
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
-          {/* <Box
-            component="img"
-            src="/obscurelogofinal-withoutbackground.png"
-            alt="Obscure Gaming logo"
-            sx={{ height: 32, width: 'auto', mr: 1 }}
-          /> */}
-            🎮 Obscure Gaming
-        </Typography>
+        <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
+          <Box
+            sx={{ display: 'flex', alignItems: 'center', gap: 1, cursor: 'pointer' }}
+            onClick={() => navigate('/')}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                navigate('/');
+              }
+            }}
+            aria-label="Go to homepage"
+          >
+            <Box
+              component="img"
+              src="/obscure-gaming-wb.png"
+              alt="Obscure Gaming logo"
+              sx={{ height: 32, width: 'auto', display: 'block' }}
+            />
+            <Typography variant="h6" component="div" sx={{ fontWeight: 'bold', lineHeight: 1 }}>
+              ObscureGaming
+            </Typography>
+          </Box>
+        </Box>
 
         <Box sx={{ display: 'flex', gap: 2 }}>
           <Button color="inherit" startIcon={<Home />} onClick={() => navigate('/') }>
