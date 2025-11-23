@@ -144,6 +144,22 @@ class ApiService {
     return response.data;
   }
 
+  // Game Play endpoints
+  async startGame(gameId: string, vsAi: boolean = true): Promise<any> {
+    const response: AxiosResponse = await this.api.post(`/play/start/${gameId}`, { vsAi });
+    return response.data;
+  }
+
+  async makeMove(sessionId: string, moveData: any): Promise<any> {
+    const response: AxiosResponse = await this.api.post(`/play/move/${sessionId}`, { moveData });
+    return response.data;
+  }
+
+  async getGameSession(sessionId: string): Promise<any> {
+    const response: AxiosResponse = await this.api.get(`/play/session/${sessionId}`);
+    return response.data;
+  }
+
   // Health check endpoint
   async health(): Promise<{ ok: boolean; status: number | null }> {
     try {
