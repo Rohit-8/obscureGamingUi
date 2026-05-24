@@ -10,6 +10,14 @@ Obscure Gaming UI is the frontend for the Obscure Gaming platform, providing a m
 - Game Details: Rules, stats, and scoring for each game
 - Responsive Design: Works on desktop and mobile
 
+## Screenshots
+
+### Landing Page
+![Collection of Games](public/obscure-gaming-landing.png)
+
+### Sample Game
+![Projectile Motion](public/sample-game.png)
+
 ## Getting Started
 
 ### Prerequisites
